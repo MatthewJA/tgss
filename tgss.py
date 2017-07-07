@@ -6,8 +6,11 @@ The Australian National University
 2017
 """
 
+import os.path
 import re
 
+import astropy.io.fits
+import astropy.wcs
 import numpy
 import scipy.spatial
 
@@ -47,8 +50,21 @@ class TGSS(survey.Survey):
         _, q = self.pointing_centres_tree.query(coord)
         return self.pointing_ids[q]
 
-    def cutout(self, coord):
-        raise NotImplementedError()
+    def cutout(self, coord, radius):
+        # First-pass: Cut directly from any containing square.
+        image_id = self.query_image_tile(coord)
+        with astropy.io.fits.open(
+                os.path.join(self.image_dir_path, image_id + '.FITS')) as fits:
+            wcs = astropy.wcs.WCS(fits[0].header)
+            min_ra = coord[0] - radius
+            min_dec = coord[1] - radius
+            max_ra = coord[0] + radius
+            max_dec = coord[1] + radius
+            min_x, min_y = wcs.all_world2pix((min_ra, min_dec), 1)
+            max_x, max_y = wcs.all_world2pix((max_ra, max_dec), 1)
+            assert max_x >= min_x
+            assert max_y >= min_y
+            cutout = fits[0].data[0, 0, min_x:max_x, min_y:max_y]
 
 
 if __name__ == '__main__':

@@ -22,6 +22,7 @@ def main(tgss_dir: str):
     for i, url in enumerate(urls):
         progress = '({}/{})'.format(i + 1, len(urls))
         target_url = os.path.join(TGSS_BASE_URL, url)
+        logging.info('Downloading {}'.format(target_url))
         target_path = os.path.join(tgss_dir, url)
         if os.path.exists(target_path):
             logging.info('{} {}: From cache'.format(progress, url))
@@ -43,4 +44,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dir', help='Download directory')
     args = parser.parse_args()
+    logging.root.setLevel(logging.INFO)
     main(args.dir)

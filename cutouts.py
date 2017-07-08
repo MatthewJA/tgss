@@ -27,7 +27,7 @@ def cutouts_radius(
             header=cutout.wcs.to_header())
         path = os.path.join(
             output_path, '{0}_{1}x{1}'.format(name, cutout_radius))
-        fits.writeto(path + '.fits')
+        fits.writeto(path + '.fits', overwrite=True)
         scipy.misc.imsave(path + '.png', cutout.data)
 
 

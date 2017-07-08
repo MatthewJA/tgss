@@ -55,8 +55,9 @@ class TGSS(survey.Survey):
         """Make a KDTree of catalogue objects."""
         with open(self.catalogue_path) as catalogue_file:
             reader = csv.DictReader(catalogue_file, delimiter='\t')
-            n = len(reader)
+            n = sum(1 for _  in reader)
             catalogue_file.seek(0)
+            next(catalogue_file)
             coords = numpy.zeros((n, 2))
             for i, row in enumerate(reader):
                 coords[i, 0] = float(row['RA'])
@@ -90,7 +91,7 @@ class TGSS(survey.Survey):
 
 if __name__ == '__main__':
     tgss = TGSS('/home/alger/myrtle1/tgss',
-                '/home/alger/myrtle1/tgss',
+                '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
                 '/home/alger/myrtle1/tgss/grid_layout.rdb')
     cutout = tgss.cutout((173.496704, 49.062008), 0.05)
     import matplotlib.pyplot as plt

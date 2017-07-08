@@ -56,13 +56,15 @@ class TGSS(survey.Survey):
         # First-pass: Cut directly from any containing square.
         image_id = self.query_image_tile(coord)
         with astropy.io.fits.open(
-                os.path.join(self.image_dir_path, image_id + '.FITS')) as fits:
-            wcs = astropy.wcs.WCS(fits[0].header)
-            coord = (coord[0] * astropy.units.degree,
-                     coord[1] * astropy.units.degree)
+                os.path.join(self.image_dir_path,
+                             image_id + '_5x5.MOSAIC.FITS')) as fits:
+            wcs = astropy.wcs.WCS(fits[0].header).dropaxis(3).dropaxis(2)
+            coord = astropy.coordinates.SkyCoord(
+                     ra=coord[0], dec=coord[1],
+                     unit='degree')
             size = radius * astropy.units.degree
             cutout = astropy.nddata.Cutout2D(
-                fits[0].data, coord, size,
+                fits[0].data[0, 0], coord, size,
                 wcs=wcs, mode='partial')
             return cutout
 
@@ -70,8 +72,10 @@ class TGSS(survey.Survey):
 if __name__ == '__main__':
     tgss = TGSS('/home/alger/myrtle1/tgss',
                 '/home/alger/myrtle1/tgss',
-                '/home/alger/myrtle1/grid_layout.rdb')
+                '/home/alger/myrtle1/tgss/grid_layout.rdb')
     cutout = tgss.cutout((173.496704, 49.062008), 0.05)
     import matplotlib.pyplot as plt
-    plt.imshow(cutout, origin=lower)
+    plt.subplot(1, 1, 1, projection=cutout.wcs)
+    plt.imshow(cutout.data, origin='lower')
     plt.show()
+

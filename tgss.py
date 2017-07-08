@@ -59,10 +59,14 @@ class TGSS(survey.Survey):
             catalogue_file.seek(0)
             next(catalogue_file)
             coords = numpy.zeros((n, 2))
+            names = []
             for i, row in enumerate(reader):
                 coords[i, 0] = float(row['RA'])
                 coords[i, 1] = float(row['DEC'])
+                names.append(row['Source_name'])
         self.catalogue_tree = scipy.spatial.KDTree(coords)
+        self.catalogue_names = numpy.array(names)
+        self.catalogue_coords = coords
 
     def query_image_tile(self, coord):
         # First-pass: Nearest-neighbour search with a KDTree.
@@ -86,7 +90,10 @@ class TGSS(survey.Survey):
             return cutout
 
     def objects(self, coord, radius):
-        raise NotImplementedError()
+        # First-pass: 2D KDTree, Euclidean approximation.
+        nearby = self.catalogue_tree.query_ball_radius(coord, radius)
+        return ((self.catalogue_names[i], self.catalogue_coords[i])
+                for i in nearby)
 
 
 if __name__ == '__main__':

@@ -50,7 +50,7 @@ class Survey(abc.ABC):
 
         Returns
         -------
-        NumPy array
+        astropy.ndarray.Cutout2D
         """
 
     @abc.abstractmethod

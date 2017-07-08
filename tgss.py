@@ -91,7 +91,7 @@ class TGSS(survey.Survey):
 
     def objects(self, coord, radius):
         # First-pass: 2D KDTree, Euclidean approximation.
-        nearby = self.catalogue_tree.query_ball_radius(coord, radius)
+        nearby = self.catalogue_tree.query_ball_point(coord, radius)
         return ((self.catalogue_names[i], self.catalogue_coords[i])
                 for i in nearby)
 

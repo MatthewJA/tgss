@@ -52,3 +52,19 @@ class Survey(abc.ABC):
         -------
         NumPy array
         """
+
+    @abc.abstractmethod
+    def objects(self, centre, radius):
+        """Get catalogue objects within a radius.
+        
+        Parameters
+        ----------
+        centre : (float, float)
+            RA, dec
+        radius : float
+            in degrees
+
+        Returns
+        -------
+        Iterable of (name, (ra, dec))
+        """

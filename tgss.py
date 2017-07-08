@@ -6,6 +6,7 @@ The Australian National University
 2017
 """
 
+import csv
 import os.path
 import re
 
@@ -44,8 +45,23 @@ class TGSS(survey.Survey):
                 self.pointing_ids.append(id_)
                 self.pointing_centres.append((float(ra), float(dec)))
         self.pointing_ids = numpy.array(self.pointing_ids)
+
         self.pointing_centres = numpy.array(self.pointing_centres)
         self.pointing_centres_tree = scipy.spatial.KDTree(self.pointing_centres)
+
+        self._make_catalogue_tree()
+
+    def _make_catalogue_tree(self):
+        """Make a KDTree of catalogue objects."""
+        with open(self.catalogue_path) as catalogue_file:
+            reader = csv.DictReader(catalogue_file, delimiter='\t')
+            n = len(reader)
+            catalogue_file.seek(0)
+            coords = numpy.zeros((n, 2))
+            for i, row in enumerate(reader):
+                coords[i, 0] = float(row['RA'])
+                coords[i, 1] = float(row['DEC'])
+        self.catalogue_tree = scipy.spatial.KDTree(coords)
 
     def query_image_tile(self, coord):
         # First-pass: Nearest-neighbour search with a KDTree.
@@ -67,6 +83,9 @@ class TGSS(survey.Survey):
                 fits[0].data[0, 0], coord, size,
                 wcs=wcs, mode='partial')
             return cutout
+
+    def objects(self, coord, radius):
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':

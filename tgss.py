@@ -105,4 +105,3 @@ if __name__ == '__main__':
     plt.subplot(1, 1, 1, projection=cutout.wcs)
     plt.imshow(cutout.data, origin='lower')
     plt.show()
-

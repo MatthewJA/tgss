@@ -46,4 +46,4 @@ if __name__ == '__main__':
     survey = tgss.TGSS('/home/alger/myrtle1/tgss',
                        '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
                        '/home/alger/myrtle1/tgss/grid_layout.rdb')
-    cutouts(survey, args.cutout_radius, args.output)
+    cutouts(survey.objects(), args.cutout_radius, args.output)

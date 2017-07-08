@@ -89,11 +89,15 @@ class TGSS(survey.Survey):
                 wcs=wcs, mode='partial')
             return cutout
 
-    def objects(self, coord, radius):
+    def objects_radius(self, coord, radius):
         # First-pass: 2D KDTree, Euclidean approximation.
         nearby = self.catalogue_tree.query_ball_point(coord, radius)
         return ((self.catalogue_names[i], self.catalogue_coords[i])
                 for i in nearby)
+
+    def objects(self):
+        return ((self.catalogue_names[i], self.catalogue_coords[i])
+                for i in range(len(self.catalogue_names)))
 
 
 if __name__ == '__main__':

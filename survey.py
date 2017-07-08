@@ -54,7 +54,7 @@ class Survey(abc.ABC):
         """
 
     @abc.abstractmethod
-    def objects(self, centre, radius):
+    def objects_radius(self, centre, radius):
         """Get catalogue objects within a radius.
         
         Parameters
@@ -63,6 +63,15 @@ class Survey(abc.ABC):
             RA, dec
         radius : float
             in degrees
+
+        Returns
+        -------
+        Iterable of (name, (ra, dec))
+        """
+
+    @abc.abstractmethod
+    def objects(self):
+        """Get all catalogue objects.
 
         Returns
         -------

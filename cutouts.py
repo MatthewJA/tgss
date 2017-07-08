@@ -30,6 +30,7 @@ def cutouts_radius(
 
 
 if __name__ == '__main__':
+    logging.root.setLevel(logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument('survey', choices=['tgss'])
     parser.add_argument('--ra', '-r', type=float)

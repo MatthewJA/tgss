@@ -16,16 +16,22 @@ import keras.layers
 import keras.models
 import numpy
 
+import tgss
+
 # Dimensionality of encoding.
 hidden_size = 32
 
 # Input image width, px.
 image_width = 28  # Assume square.
 
-def load_tgss(tgss_path):
+def load_tgss(tgss, tgss_path):
     images = []
     for filename in os.listdir(tgss_path):
         if not filename.lower().endswith('fits'):
+            continue
+        # Eliminate objects that are compact.
+        name = filename.split('_')[0]
+        if tgss.is_compact(name):
             continue
         with astropy.io.fits.open(os.path.join(tgss_path, filename)) as fits:
             images.append(fits[0].data.copy())
@@ -83,11 +89,11 @@ def get_model(conv=(3, 3)):
     # TODO(MatthewJA): Return an encoder and decoder too.
     return autoencoder
 
-def train():
+def train(tgss):
     autoencoder = get_model()
 
     # Load and normalise images.
-    train_images, test_images = load_tgss('/home/alger/myrtle1/tgss-cutouts/')
+    train_images, test_images = load_tgss(tgss, '/home/alger/myrtle1/tgss-cutouts/')
     autoencoder.fit(train_images, train_images,
                     epochs=50,
                     batch_size=32,
@@ -96,5 +102,9 @@ def train():
     autoencoder.save('ae.h5')
 
 if __name__ == '__main__':
-    train()
+    t = tgss.TGSS(
+        '/home/alger/myrtle1/tgss/',
+        '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
+        '/home/alger/myrtle1/tgss/grid_layout.rdb')
+    train(t)
 

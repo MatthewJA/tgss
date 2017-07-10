@@ -90,7 +90,8 @@ class TGSS(survey.Survey):
         self.catalogue_coords = coords
         self.catalogue_compact = compact
         self.name_to_index = {
-            name: index for index, name in enumerate(self.catalogue_names)}
+            name.decode('ascii'): index
+            for index, name in enumerate(self.catalogue_names)}
 
     def query_image_tile(self, coord):
         # First-pass: Nearest-neighbour search with a KDTree.

@@ -77,3 +77,17 @@ class Survey(abc.ABC):
         -------
         Iterable of (name, (ra, dec))
         """
+
+    @abc.abstractmethod
+    def is_compact(self, name):
+        """Check if a component is compact.
+
+        Parameters
+        ----------
+        name : str
+            Name of object.
+
+        Returns
+        -------
+        bool
+        """

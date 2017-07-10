@@ -19,6 +19,21 @@ import scipy.spatial
 
 import survey
 
+
+def is_compact(s_int, s_peak, e_s_int, e_s_peak):
+    """Check if an object is compact."""
+    if not s_int:
+        s_int = s_peak
+        e_s_int = e_s_peak
+
+    r = numpy.log(s_int / s_peak)
+    e_r = numpy.sqrt(
+        (e_s_int / s_int) ** 2 +
+        (e_s_peak / s_peak) ** 2)
+
+    return r < 2 * e_r
+
+
 class TGSS(survey.Survey):
     """TIFR GMRT Sky Survey Alternative Data Release 1."""
 
@@ -49,24 +64,33 @@ class TGSS(survey.Survey):
         self.pointing_centres = numpy.array(self.pointing_centres)
         self.pointing_centres_tree = scipy.spatial.KDTree(self.pointing_centres)
 
-        self._make_catalogue_tree()
+        self._process_catalogue()
 
-    def _make_catalogue_tree(self):
-        """Make a KDTree of catalogue objects."""
+    def _process_catalogue(self):
+        """Store catalogue data."""
         with open(self.catalogue_path) as catalogue_file:
             reader = csv.DictReader(catalogue_file, delimiter='\t')
             n = sum(1 for _  in reader)
             catalogue_file.seek(0)
             next(catalogue_file)
+            compact = numpy.zeros((n,), dtype=bool)
             coords = numpy.zeros((n, 2))
             names = []
             for i, row in enumerate(reader):
                 coords[i, 0] = float(row['RA'])
                 coords[i, 1] = float(row['DEC'])
                 names.append(row['Source_name'])
+                compact[i] = is_compact(
+                    float(row['Total_flux']),
+                    float(row['Peak_flux']),
+                    float(row['E_Total_flux']),
+                    float(row['E_Peak_flux']))
         self.catalogue_tree = scipy.spatial.KDTree(coords)
         self.catalogue_names = numpy.array(names)
         self.catalogue_coords = coords
+        self.catalogue_compact = compact
+        self.name_to_index = {
+            name: index for index, name in enumerate(self.catalogue_names)}
 
     def query_image_tile(self, coord):
         # First-pass: Nearest-neighbour search with a KDTree.
@@ -98,6 +122,9 @@ class TGSS(survey.Survey):
     def objects(self):
         return ((self.catalogue_names[i], self.catalogue_coords[i])
                 for i in range(len(self.catalogue_names)))
+
+    def is_compact(self, name):
+        return self.catalogue_compact[self.name_to_index[name]]
 
 
 if __name__ == '__main__':

@@ -35,6 +35,7 @@ def load_tgss(tgss_path):
     images /= images.max()
     # Prime numbers are not great for widths, so drop the last column and row.
     images = images[:, :28, :28]
+    images = images.reshape((-1, 1, 28, 28))
     train_images = images[:len(images) // 2]
     test_images = images[len(images) // 2:]
     return train_images, test_images
@@ -42,36 +43,37 @@ def load_tgss(tgss_path):
 def get_model(conv=(3, 3)):
     img = keras.layers.Input((1, image_width, image_width))
 
-    # Encoder
     # 1 x 28 x 28
-    conv1 = keras.layers.Conv2D(16, conv, activation='relu', padding='same')(img)
+    conv1 = keras.layers.Conv2D(16, conv, activation='relu', padding='same', data_format='channels_first')(img)
     # 16 x 28 x 28
-    pool1 = keras.layers.MaxPooling2D((2, 2))(conv1)
+    pool1 = keras.layers.MaxPooling2D((2, 2), data_format='channels_first')(conv1)
     # 16 x 14 x 14
-    conv2 = keras.layers.Conv2D(8, conv, activation='relu', padding='same')(pool1)
+    conv2 = keras.layers.Conv2D(8, conv, activation='relu', padding='same', data_format='channels_first')(pool1)
     # 8 x 14 x 14
-    pool2 = keras.layers.MaxPooling2D((2, 2))(conv2)
+    pool2 = keras.layers.MaxPooling2D((2, 2), data_format='channels_first')(conv2)
     # 8 x 7 x 7
-    conv3 = keras.layers.Conv2D(8, conv, activation='relu', padding='same')(pool2)
+    conv3 = keras.layers.Conv2D(8, conv, activation='relu', padding='same', data_format='channels_first')(pool2)
     # 8 x 7 x 7
-    encoded = keras.layers.MaxPooling2D((2, 2))(conv3)
-    # 8 x 4 x 4
+    encoded = keras.layers.MaxPooling2D((2, 2), data_format='channels_first')(conv3)
+    # 8 x 3 x 3
 
     # Decoder
-    # 8 x 4 x 4
-    deconv1 = keras.layers.Conv2D(8, conv, activation='relu', padding='same')(encoded)
-    # 8 x 4 x 4
-    upsamp1 = keras.layers.UpSampling2D((2, 2))(deconv1)
-    # 8 x 8 x 8
-    deconv2 = keras.layers.Conv2D(8, conv, activation='relu', padding='same')(upsamp1)
-    # 8 x 8 x 8
-    upsamp2 = keras.layers.UpSampling2D((2, 2))(deconv2)
-    # 8 x 16 x 16
-    deconv3 = keras.layers.Conv2D(16, conv, activation='relu', padding='same')(upsamp2)
-    # 16 x 16 x 16
-    upsamp3 = keras.layers.UpSampling2D((2, 2))(deconv3)
+    # 8 x 3 x 3
+    deconv1 = keras.layers.Conv2D(8, conv, activation='relu', padding='same', data_format='channels_first')(encoded)
+    # 8 x 3 x 3
+    upsamp1 = keras.layers.UpSampling2D((3, 3), data_format='channels_first')(deconv1)
+    # 8 x 9 x 9
+    deconv2 = keras.layers.Conv2D(8, conv, activation='relu', padding='same', data_format='channels_first')(upsamp1)
+    # 8 x 9 x 9
+    upsamp2 = keras.layers.UpSampling2D((2, 2), data_format='channels_first')(deconv2)
+    # 8 x 18 x 18
+    deconv3 = keras.layers.Conv2D(16, conv, activation='relu', padding='same', data_format='channels_first')(upsamp2)
+    # 16 x 18 x 18
+    upsamp3 = keras.layers.UpSampling2D((2, 2), data_format='channels_first')(deconv3)
+    # 16 x 36 x 36
+    deconv4 = keras.layers.Conv2D(16, (7, 7), activation='relu', padding='valid', data_format='channels_first')(upsamp3)
     # 16 x 32 x 32
-    decoded = keras.layers.Conv2D(1, (5, 5), acitvation='sigmoid', padding='same')(upsamp3)
+    decoded = keras.layers.Conv2D(1, conv, activation='relu', padding='valid', data_format='channels_first')(deconv4)
     # 1 x 28 x 28
 
     autoencoder = keras.models.Model(img, decoded)
@@ -83,13 +85,12 @@ def get_model(conv=(3, 3)):
 
 def train():
     autoencoder = get_model()
-    autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
     # Load and normalise images.
     train_images, test_images = load_tgss('/home/alger/myrtle1/tgss-cutouts/')
     autoencoder.fit(train_images, train_images,
                     epochs=50,
-                    batch_size=128,
+                    batch_size=32,
                     shuffle=True,
                     validation_data=(test_images, test_images))
     autoencoder.save('ae.h5')

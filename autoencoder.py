@@ -9,6 +9,7 @@ The Australian National University
 2017
 """
 
+import argparse
 import os
 
 import astropy.io.fits
@@ -89,7 +90,7 @@ def get_model(conv=(3, 3)):
     # TODO(MatthewJA): Return an encoder and decoder too.
     return autoencoder
 
-def train(tgss):
+def train(tgss, output):
     autoencoder = get_model()
 
     # Load and normalise images.
@@ -99,12 +100,14 @@ def train(tgss):
                     batch_size=32,
                     shuffle=True,
                     validation_data=(test_images, test_images))
-    autoencoder.save('ae.h5')
+    autoencoder.save(output)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--output', default='ae.h5')
+    args = parser.parse_args()
     t = tgss.TGSS(
         '/home/alger/myrtle1/tgss/',
         '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
         '/home/alger/myrtle1/tgss/grid_layout.rdb')
-    train(t)
-
+    train(t, args.output)

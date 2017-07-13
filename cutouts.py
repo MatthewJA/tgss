@@ -11,6 +11,7 @@ import logging
 import os.path
 
 import astropy.io.fits
+import astropy.nddata.utils
 import scipy.misc
 
 import tgss
@@ -19,14 +20,17 @@ def cutouts(objects, cutout_radius, output_path):
     """Generate cutouts of given objects."""
     for name, coord in objects:
         logging.info('Generating cutout for {}'.format(name))
-        cutout = survey.cutout(coord, cutout_radius)
+        try:        
+            cutout = survey.cutout(coord, cutout_radius)
+        except astropy.nddata.utils.NoOverlapError:
+            logging.warning('No overlap for {}'.format(name))
         fits = astropy.io.fits.PrimaryHDU(
             data=cutout.data,
             header=cutout.wcs.to_header())
         path = os.path.join(
             output_path, '{0}_{1}x{1}'.format(name, cutout_radius))
         fits.writeto(path + '.fits', overwrite=True)
-        scipy.misc.imsave(path + '.png', cutout.data)
+        #scipy.misc.imsave(path + '.png', cutout.data)
 
 def cutouts_radius(
         survey, search_centre, search_radius, cutout_radius, output_path):

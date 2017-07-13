@@ -90,7 +90,7 @@ class TGSS(survey.Survey):
         self.catalogue_coords = coords
         self.catalogue_compact = compact
         self.name_to_index = {
-            name.decode('ascii'): index
+            str(name): index
             for index, name in enumerate(self.catalogue_names)}
 
     def query_image_tile(self, coord):

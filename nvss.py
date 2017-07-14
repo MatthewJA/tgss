@@ -51,7 +51,7 @@ class NVSS(survey.Survey):
         # an array of corresponding pointing centres.
         self.pointing_ids = []
         self.pointing_centres = []
-        filename_re = re.compile(r'C(\d{2})(\d{2})([MP])(\d{2})\.gz')
+        filename_re = re.compile(r'C(\d{2})(\d{2})([MP])(\d{2})\.fits')
         for filename in os.listdir(image_dir_path):
             # Filenames are of the form CHHMMSDD.
             match = filename_re.match(filename)
@@ -98,7 +98,7 @@ class NVSS(survey.Survey):
         # First-pass: Cut directly from any containing square.
         image_id = self.query_image_tile(coord)
         with astropy.io.fits.open(
-                os.path.join(self.image_dir_path, image_id + '.gz')) as fits:
+                os.path.join(self.image_dir_path, image_id + '.fits')) as fits:
             # WCS order: RA, DEC, STOKES, FREQ
             # Data order: FREQ, STOKES, DEC, RA
             # WCS that contains only RA/DEC.

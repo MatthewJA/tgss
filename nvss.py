@@ -106,10 +106,9 @@ class NVSS(survey.Survey):
                      unit='degree')
             size = radius * astropy.units.degree
             # One channel for each Stokes parameter.
-            cutouts = [astropy.nddata.Cutout2D(
-                fits[0].data[0, s], coord, size,
-                wcs=wcs, mode='partial') for s in range(3)]
-            cutout = numpy.stack(cutouts)
+            cutout = astropy.nddata.Cutout2D(
+                fits[0].data[0], coord, size,
+                wcs=wcs, mode='partial')]
             return cutout
 
     def objects_radius(self, coord, radius):

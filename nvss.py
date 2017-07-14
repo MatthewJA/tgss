@@ -97,20 +97,20 @@ class NVSS(survey.Survey):
         image_id = self.query_image_tile(coord)
         with astropy.io.fits.open(
                 os.path.join(self.image_dir_path, image_id + '.gz')) as fits:
-            wcs = astropy.wcs.WCS(fits[0].header)
-            print(wcs)
-            print(fits[0].shape)
-            import pdb
-            pdb.set_trace()
-            # wcs = astropy.wcs.WCS(fits[0].header).dropaxis(3).dropaxis(2)
-            # # coord = astropy.coordinates.SkyCoord(
-            # #          ra=coord[0], dec=coord[1],
-            # #          unit='degree')
-            # # size = radius * astropy.units.degree
-            # # cutout = astropy.nddata.Cutout2D(
-            # #     fits[0].data[0, 0], coord, size,
-            # #     wcs=wcs, mode='partial')
-            # # return cutout
+            # WCS order: RA, DEC, STOKES, FREQ
+            # Data order: FREQ, STOKES, DEC, RA
+            # WCS that contains only RA/DEC.
+            wcs = astropy.wcs.WCS(fits[0].header).dropaxis(3).dropaxis(2)
+            coord = astropy.coordinates.SkyCoord(
+                     ra=coord[0], dec=coord[1],
+                     unit='degree')
+            size = radius * astropy.units.degree
+            # One channel for each Stokes parameter.
+            cutouts = [astropy.nddata.Cutout2D(
+                fits[0].data[0, s], coord, size,
+                wcs=wcs, mode='partial') for s in range(3)]
+            cutout = numpy.stack(cutouts)
+            return cutout
 
     def objects_radius(self, coord, radius):
         # First-pass: 2D KDTree, Euclidean approximation.

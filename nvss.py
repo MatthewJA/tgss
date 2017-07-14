@@ -65,7 +65,7 @@ class NVSS(survey.Survey):
             coord = astropy.coordinates.SkyCoord(
                 ra=ra, dec=dec, unit=('hourangle', 'deg'))
             coord = (coord.ra.deg, coord.dec.deg)
-            self.pointing_ids.append(filename[:-3])
+            self.pointing_ids.append(filename[:-5])
             self.pointing_centres.append(coord)
 
         self.pointing_ids = numpy.array(self.pointing_ids)

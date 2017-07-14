@@ -78,14 +78,10 @@ class NVSS(survey.Survey):
         """Store catalogue data."""
         with astropy.io.fits.open(self.catalogue_path) as catalogue_file:
             n = catalogue_file[1].data.shape[0]
-            coords = numpy.zeros((n, 2))
-            names = []
-            for i, row in enumerate(catalogue_file[1].data):
-                ra = row['RA(2000)']
-                dec = row['DEC(2000)']
-                coords[i, 0] = ra
-                coords[i, 1] = dec
-                names.append('NVSS#{}'.format(i))
+            ras = catalogue_file[1].data['RA(2000)']
+            decs = catalogue_file[1].data['DEC(2000)']
+            coords = numpy.stack([ras, decs])
+            names = ['NVSS#{}'.format(i) for i in range(n)]
         self.catalogue_tree = scipy.spatial.KDTree(coords)
         self.catalogue_names = numpy.array(names)
         self.catalogue_coords = coords

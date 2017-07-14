@@ -19,7 +19,6 @@ import numpy
 import scipy.spatial
 
 import survey
-from tgss import is_compact
 
 
 class Cutout3D:
@@ -77,31 +76,22 @@ class NVSS(survey.Survey):
 
     def _process_catalogue(self):
         """Store catalogue data."""
-        # TODO(MatthewJA): Read in catalogue data.
-        # with open(self.catalogue_path) as catalogue_file:
-        #     reader = csv.DictReader(catalogue_file, delimiter='\t')
-        #     n = sum(1 for _  in reader)
-        #     catalogue_file.seek(0)
-        #     next(catalogue_file)
-        #     compact = numpy.zeros((n,), dtype=bool)
-        #     coords = numpy.zeros((n, 2))
-        #     names = []
-        #     for i, row in enumerate(reader):
-        #         coords[i, 0] = float(row['RA'])
-        #         coords[i, 1] = float(row['DEC'])
-        #         names.append(row['Source_name'])
-        #         compact[i] = is_compact(
-        #             float(row['Total_flux']),
-        #             float(row['Peak_flux']),
-        #             float(row['E_Total_flux']),
-        #             float(row['E_Peak_flux']))
-        # self.catalogue_tree = scipy.spatial.KDTree(coords)
-        # self.catalogue_names = numpy.array(names)
-        # self.catalogue_coords = coords
-        # self.catalogue_compact = compact
-        # self.name_to_index = {
-        #     str(name): index
-        #     for index, name in enumerate(self.catalogue_names)}
+        with astropy.io.fits.open(self.catalogue_path) as catalogue_file:
+            n = catalogue_file[1].data.shape[0]
+            coords = numpy.zeros((n, 2))
+            names = []
+            for i, row in enumerate(catalogue_file[1].data):
+                ra = row['RA(2000)']
+                dec = row['DEC(2000)']
+                coords[i, 0] = ra
+                coords[i, 1] = dec
+                names.append('NVSS#{}'.format(i))
+        self.catalogue_tree = scipy.spatial.KDTree(coords)
+        self.catalogue_names = numpy.array(names)
+        self.catalogue_coords = coords
+        self.name_to_index = {
+            str(name): index
+            for index, name in enumerate(self.catalogue_names)}
 
     def query_image_tile(self, coord):
         # First-pass: Nearest-neighbour search with a KDTree.
@@ -138,11 +128,12 @@ class NVSS(survey.Survey):
                 for i in range(len(self.catalogue_names)))
 
     def is_compact(self, name):
-        return self.catalogue_compact[self.name_to_index[name]]
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':
-    nvss = NVSS('/home/alger/myrtle1/nvss', '')
+    nvss = NVSS('/home/alger/myrtle1/nvss',
+                '/home/alger/myrtle1/nvss/CATALOG.FIT')
     # cutout = nvss.cutout((173.496704, 49.062008), 0.05)
     # import matplotlib.pyplot as plt
     # plt.subplot(1, 1, 1, projection=cutout.wcs)

@@ -14,6 +14,7 @@ import astropy.io.fits
 import astropy.nddata.utils
 import scipy.misc
 
+import nvss
 import tgss
 
 def cutouts(objects, cutout_radius, output_path):
@@ -42,12 +43,17 @@ def cutouts_radius(
 if __name__ == '__main__':
     logging.root.setLevel(logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument('survey', choices=['tgss'])
+    parser.add_argument('survey', choices=['tgss', 'nvss'])
     parser.add_argument('--cutout-radius', '-c', type=float, default=0.05)
     parser.add_argument('--output', '-o')
     args = parser.parse_args()
 
-    survey = tgss.TGSS('/home/alger/myrtle1/tgss',
-                       '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
-                       '/home/alger/myrtle1/tgss/grid_layout.rdb')
+    if args.survey == 'tgss':
+        survey = tgss.TGSS('/home/alger/myrtle1/tgss',
+                           '/home/alger/myrtle1/tgss/TGSSADR1_7sigma_catalog.tsv',
+                           '/home/alger/myrtle1/tgss/grid_layout.rdb')
+    elif args.survey == 'nvss':
+        survey = nvss.NVSS('/home/alger/myrtle1/nvss',
+                           '/home/alger/myrtle1/nvss/CATALOG.FIT')
+
     cutouts(survey.objects(), args.cutout_radius, args.output)

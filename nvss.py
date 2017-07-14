@@ -22,6 +22,22 @@ import survey
 from tgss import is_compact
 
 
+class Cutout3D:
+    """3D cutout with same API as Cutout2D."""
+
+    def __init__(self, cutouts):
+        self.wcs = cutouts[0].wcs
+        self.data = numpy.stack([cutout.data for cutout in cutouts])
+        self.bbox_cutout = cutouts[0].bbox_cutout
+        self.bbox_original = cutouts[0].bbox_original
+        self.center_cutout = cutouts[0].center_cutout
+        self.center_original = cutouts[0].center_original
+        self.origin_cutout = cutouts[0].origin_cutout
+        self.origin_original = cutouts[0].origin_original
+        self.position_cutout = cutouts[0].position_cutout
+        self.position_original = cutouts[0].position_original
+
+
 class NVSS(survey.Survey):
     """NRAO VLA Sky Survey."""
 
@@ -106,10 +122,10 @@ class NVSS(survey.Survey):
                      unit='degree')
             size = radius * astropy.units.degree
             # One channel for each Stokes parameter.
-            cutout = astropy.nddata.Cutout2D(
-                fits[0].data[0], coord, size,
-                wcs=wcs, mode='partial')]
-            return cutout
+            cutouts = [astropy.nddata.Cutout2D(
+                fits[0].data[0, s], coord, size,
+                wcs=wcs, mode='partial') for s in range(3)]
+            return Cutout3D(cutouts)
 
     def objects_radius(self, coord, radius):
         # First-pass: 2D KDTree, Euclidean approximation.

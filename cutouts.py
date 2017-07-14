@@ -9,6 +9,7 @@ The Australian National University
 import argparse
 import logging
 import os.path
+import time
 
 import astropy.io.fits
 import astropy.nddata.utils
@@ -20,7 +21,7 @@ import tgss
 def cutouts(objects, cutout_radius, output_path):
     """Generate cutouts of given objects."""
     for name, coord in objects:
-        logging.info('Generating cutout for {}'.format(name))
+        then = time.time()
         try:        
             cutout = survey.cutout(coord, cutout_radius)
         except astropy.nddata.utils.NoOverlapError:
@@ -31,6 +32,7 @@ def cutouts(objects, cutout_radius, output_path):
         path = os.path.join(
             output_path, '{0}_{1}x{1}'.format(name, cutout_radius))
         fits.writeto(path + '.fits', overwrite=True)
+        logging.info('Generated cutout for {} (took {:.02f})'.format(name, time.time() - then))
         #scipy.misc.imsave(path + '.png', cutout.data)
 
 def cutouts_radius(

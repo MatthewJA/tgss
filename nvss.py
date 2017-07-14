@@ -80,7 +80,7 @@ class NVSS(survey.Survey):
             n = catalogue_file[1].data.shape[0]
             ras = catalogue_file[1].data['RA(2000)']
             decs = catalogue_file[1].data['DEC(2000)']
-            coords = numpy.stack([ras, decs])
+            coords = numpy.stack([ras, decs]).T
             names = ['NVSS#{}'.format(i) for i in range(n)]
         self.catalogue_tree = scipy.spatial.KDTree(coords)
         self.catalogue_names = numpy.array(names)
